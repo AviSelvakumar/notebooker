@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Feedback</title>
+</head>
+<body>
+    <h1>Interview Feedback</h1>
+    <h3>Responses:</h3>
+    <p><strong>Robot Design:</strong> {{ responses['robot_design'] }}</p>
+    <p><strong>Strategy:</strong> {{ responses['strategy'] }}</p>
+    <p><strong>Teamwork:</strong> {{ responses['teamwork'] }}</p>
+
+    <h3>Feedback:</h3>
+    <ul>
+        {% for comment in feedback %}
+            <li>{{ comment }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
