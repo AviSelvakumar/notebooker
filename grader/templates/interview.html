@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 60%;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .mic-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .recording {
+            color: red;
+        }
+
+        /* Score & Feedback Section */
+        .feedback-container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 35%;
+            text-align: center;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feedback {
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-container">
+            <h2>Interview Questions</h2>
+            <form id="questionForm">
+                <!-- Questions will be dynamically added here -->
+            </form>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="feedback-container">
+            <h2>Score & Feedback</h2>
+            <div class="score" id="score">Score: --</div>
+            <div class="feedback" id="feedback">Submit your answers to receive feedback.</div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchQuestions() {
+            const response = await fetch('/questionList');
+            const questions = await response.json();
+            return questions;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const questions = await fetchQuestions();
+            generateForm(questions);
+        });
+
+        function generateForm(questions) {
+            const form = document.getElementById('questionForm');
+            const inputList = [];
+            const respondingInputs = [];
+            for (const question of questions) {
+                const label = document.createElement('label');
+                label.textContent = question;
+
+                const inputContainer = document.createElement('div');
+                inputContainer.className = 'input-container';
+
+                const input = document.createElement('textarea');
+                input.name = question;
+                inputList.push(input);
+
+                const micButton = document.createElement('button');
+                micButton.type = 'button';
+                micButton.className = 'mic-button';
+                micButton.innerHTML = '🎤'; // Default mic icon
+                micButton.isRecording = false;
+                let recognition = null;
+
+                micButton.onclick = () => {
+                    if (!micButton.isRecording) {
+                        startSpeechRecognition(input, micButton);
+                    } else {
+                        stopSpeechRecognition(micButton);
+                    }
+                };
+
+                inputContainer.appendChild(input);
+                inputContainer.appendChild(micButton);
+
+                form.appendChild(label);
+                form.appendChild(inputContainer);
+            }
+
+            const submitButton = document.createElement('button');
+            submitButton.type = 'button';
+            submitButton.textContent = 'Submit Interview';
+            submitButton.onclick = () => {
+                calculateScore(questions, inputList);
+            };
+            form.appendChild(submitButton);
+        }
+
+        function startSpeechRecognition(textarea, micButton) {
+            if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+                alert('Speech recognition is not supported in this browser.');
+                return;
+            }
+
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            micButton.recognition = recognition;
+
+            recognition.onstart = function () {
+                micButton.innerHTML = '🔴'; // Change to red recording icon
+                micButton.classList.add('recording');
+                micButton.isRecording = true;
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                textarea.value += transcript + ' ';
+            };
+
+            recognition.onerror = function () {
+                stopSpeechRecognition(micButton);
+            };
+
+            recognition.onend = function () {
+                stopSpeechRecognition(micButton);
+            };
+
+            recognition.start();
+        }
+
+        function stopSpeechRecognition(micButton) {
+            if (micButton.recognition) {
+                micButton.recognition.stop();
+                micButton.recognition = null;
+            }
+            micButton.innerHTML = '🎤'; // Change back to mic icon
+            micButton.classList.remove('recording');
+            micButton.isRecording = false;
+        }
+        function compileInterview(questions, responses) {
+            let interviewString = "";
+
+            for (let i = 0; i < questions.length; i++) {
+                interviewString += `${questions[i]}: ${responses[i]}\n`;
+            }
+
+            return interviewString;
+        }
+        async function calculateScore(questions, inputList) {
+            const interview = {};
+            interviewStr = "";
+            questions.forEach((question, index) => {
+                interview[question] = inputList[index].value;
+            });
+
+            try {
+                const response = await fetch('/gradeInterview/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(interview) // Send responses as JSON in request body
+                });
+            
+                const data = await response.json();
+                console.log(data);
+                document.getElementById('score').textContent = `Score: ${data.score || '--'}`;
+                document.getElementById('feedback').textContent = data.feedback || 'No feedback available';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('feedback').textContent = 'Failed to submit interview.';
+            }
+        }
+    </script>
+</body>
+
+</html>
