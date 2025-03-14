@@ -21,6 +21,6 @@ from views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('questionList/', questionList),
-    path('interview/', interview),
+    path('/', interview),
     path('gradeInterview/', gradeInterview),
 ]
