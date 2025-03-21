@@ -24,10 +24,11 @@ import os
 SECRET_KEY = "|fCZfYp$E,bHBne$1_W>1])>$MD/V;2fR8X*KJ}rgI:Ada%5(A43&(ElIO*Nx$d3"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    'notebooker.onrender.com'
+    'notebooker.onrender.com',
+    '127.0.0.1'
 ]
 
 

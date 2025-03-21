@@ -79,48 +79,86 @@ question = "How did you develop this robot design?"
 responses = []
 
 questionsAndResponses = {}
-"""
-for i, question in enumerate(questionList):
-    response = input(question.text + " ")
-    responses.append(response)
-
-for i, question in enumerate(responses):
-    questionsAndResponses[questionList[i]] = responses[i]
-
-userInterview = ""
-
-for question in questionsAndResponses:
-    userInterview += question.text + ": " + questionsAndResponses[question] + "\n"
-
-print(userInterview)"
-
-print(content)
-
-if response == 'debug':
-    response = "In the drivetrain, we decied to reuse our drivetrain from last year with a 36:48 gear ratio as it saved us time and was still suitable for this year's game, providing enough torque to push other robots in defensive situations and enough speed to quickly reach positive and negative corners before other robots. Building a new drivetrain would have cost us time that we don't have. In order to grab the mobile goal, we decided to go with a pneumatic clamp as pneumatics are both fast and powerful. A motor with enough torque to clamp onto the mobile goal would have required our robot to stop moving for a while to clamp on since it is slower. In order to intake rings, we decided to use flexwheels and a conveyor belt system to move rings onto the mobile goal. We considered using a 'hood' system to push rings onto the mobile goal, but we decied against it as it required us to tune our mobile goal clamp to be more precice."
-"""
 
 content = "You are a judge at a high school VEX Robotics competition interviewing competing teams. You will evaluate a team's interview based on the following rubric: In the Engineering Design Process category, " + designProcessRubric.prompt + " In the Game Strategies category, " + strategyRubric.prompt + " In the Robot Design category, " + designRubric.prompt + " In the Robot Build category, " + buildRubric.prompt + " In the Robot Programming category, " + programmingRubric.prompt + " In the Creativity / Originality category, " + creativeRubric.prompt + " In the Team and Project Management category, " + teamworkRubric.prompt
 
 def gradeInterview(request):
-    interview = request.body.decode('utf-8')
+    interviewJSON = request.body.decode('utf-8')
+    interviewPy = json.loads(interviewJSON)
+    interview = ""
+    for key in interviewPy:
+        if interviewPy[key] != "":
+            interview += key + ": " + interviewPy[key] + "\n"
     print(interview)
+    if interview == "":
+        return HttpResponse(status=400)
     completion = client.chat.completions.create(
-    model="google/gemini-2.0-pro-exp-02-05:free",
+    model='google/gemini-2.0-flash-exp:free',
+    extra_body={
+        'models': ["google/gemini-2.0-pro-exp-02-05:free"]
+    },
     messages=[
         {
             "role": "system",
-            "content": "You are a helpful mentor for high school VEX Robotics students providing feedback on a practice interview. You will evaluate a team's interview based on the following rubric: In the Engineering Design Process category, " + designProcessRubric.prompt + " In the Game Strategies category, " + strategyRubric.prompt + " In the Robot Design category, " + designRubric.prompt + " In the Robot Build category, " + buildRubric.prompt + " In the Robot Programming category, " + programmingRubric.prompt + " In the Creativity / Originality category, " + creativeRubric.prompt + " In the Team and Project Management category, " + teamworkRubric.prompt + " Score the interview as a whole. Use this JSON Schema: ['score':  int,\n'feedback': str]. Output only the JSON. Do not wrap the JSON codes in JSON markers. Do not use markdown. Add a blank line at the top and bottom of the JSON. Start by scoring the interview in each category, then add up the scores to get the total score. Finally, provide an overall score and feedback for the interview."
+            "content": "You are a helpful mentor for high school VEX Robotics students providing feedback on a practice verbal interview. You will evaluate a team's interview based on the following rubric: In the Engineering Design Process category, " + designProcessRubric.prompt + " In the Game Strategies category, " + strategyRubric.prompt + " In the Robot Design category, " + designRubric.prompt + " In the Robot Build category, " + buildRubric.prompt + " In the Robot Programming category, " + programmingRubric.prompt + " In the Creativity / Originality category, " + creativeRubric.prompt + " In the Team and Project Management category, " + teamworkRubric.prompt + " Score the interview as a whole. Use this JSON Schema: {'score':  int,\n'feedback': str}. Output only the JSON. Do not wrap the JSON codes in JSON markers. Do not use markdown. Add a blank line at the top and bottom of the JSON. Start by scoring the interview in each category, then add up the scores to get the total score. Finally, provide an overall score and feedback for the interview. Ensure answers are specific and detailed. Scores within each category can be a zero. The interview will be in the following format: 'question': 'answer'. Pick one specific score. Do not provide a range of scores."
         },
         {
         "role": "user",
         "content": interview
         }
-    ])
-    filter1 = completion.choices[0].message.content.replace("```json", "")
-    filter2 = filter1.replace("```", "")
-    print(filter2)
-    return HttpResponse(filter2)
+    ],
+    response_format={
+        'type': 'json_schema',
+        'json_schema': {
+            'name': 'aiResponse',
+            'strict': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'score': {
+                        'type': 'int',
+                        'description': 'Total grade that interview recieves. This field should only be the total score. Do not place any text here.'
+                    },
+                    'feedback': {
+                        'type': 'string',
+                        'description': 'Feedback on how to improve interview score',
+                    },
+                    'engineeringDesignProcess': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Engineering Design Process category'
+                    },
+                    'gameStrategy': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Game Strategy category'
+                    },
+                    'robotDesign': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Robot Design category'
+                    },
+                    'robotBuild': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Robot Build category'
+                    },
+                    'robotProgramming': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Robot Programming category'
+                    },
+                    'creativityOriginality': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Engineering Design Process category'
+                    },
+                    'teamAndProjectManagement': {
+                        'type': 'int',
+                        'description': 'Score that interview recieves in the Team and Project Management category'
+                    }
+                },
+                'required': ['score', 'feedback', 'engineeringDesignProcess', 'gameStrategy', 'robotDesign', 'robotBuild', 'robotProgramming', 'creativityOriginality', 'teamAndProjectManagement']
+            }
+        }
+    })
+    processed = "".join(completion.choices[0].message.content.replace("```json", "").replace("```", "").splitlines())
+    print(processed)
+    return HttpResponse(processed)
 
 def getQuestionsJSON():
     return json.dumps(questionList)
