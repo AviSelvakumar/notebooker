@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VEX Interview Practice</title>
+    <!-- Cronitor RUM -->
+    <script async src="https://rum.cronitor.io/script.js"></script>
+    <script>
+        window.cronitor = window.cronitor || function () { (window.cronitor.q = window.cronitor.q || []).push(arguments); };
+        cronitor('config', { clientKey: '9df3439403067d4de2b5ca9c8ddca14e' });
+    </script>
+
     <style>
         :root {
             --primary-color: #3498db;
@@ -16,13 +23,13 @@
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --border-radius: 8px;
         }
-        
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-gray);
@@ -50,8 +57,9 @@
             .container {
                 flex-direction: column;
             }
-            
-            .form-container, .feedback-container {
+
+            .form-container,
+            .feedback-container {
                 width: 100% !important;
             }
         }
@@ -119,7 +127,7 @@
         button:hover {
             background-color: var(--primary-dark);
         }
-        
+
         button:active {
             transform: translateY(2px);
         }
@@ -139,7 +147,7 @@
             padding: 0;
             margin: 0;
         }
-        
+
         .mic-button:hover {
             background-color: var(--light-gray);
         }
@@ -150,11 +158,19 @@
             background-color: rgba(231, 76, 60, 0.1);
             animation: pulse 1.5s infinite;
         }
-        
+
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* Score & Feedback Section */
@@ -167,7 +183,7 @@
             width: 35%;
             transition: all 0.3s ease;
         }
-        
+
         .feedback-container:hover {
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
@@ -187,26 +203,28 @@
             border-collapse: collapse;
             margin: 20px 0;
         }
-        
-        th, td {
+
+        th,
+        td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
-        
+
         th {
             font-weight: 600;
             color: var(--text-color);
         }
-        
+
         td {
             font-weight: 500;
         }
-        
-        tr:last-child th, tr:last-child td {
+
+        tr:last-child th,
+        tr:last-child td {
             border-bottom: none;
         }
-        
+
         tr:hover {
             background-color: rgba(52, 152, 219, 0.05);
         }
@@ -384,21 +402,21 @@
             const interview = {};
             interviewStr = "";
             let hasAnswer = false;
-            
+
             questions.forEach((question, index) => {
                 interview[question] = inputList[index].value;
                 if (inputList[index].value.trim() !== '') {
                     hasAnswer = true;
                 }
             });
-            
+
             // Check if at least one question has been answered
             if (!hasAnswer) {
                 document.getElementById('feedback').textContent = 'Please answer at least one question before submitting.';
                 document.getElementById('feedback').style.borderLeftColor = '#e74c3c'; // Red color for error
                 return;
             }
-            
+
             // Reset feedback styling
             document.getElementById('feedback').style.borderLeftColor = 'var(--secondary-color)';
 
