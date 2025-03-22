@@ -52,7 +52,7 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-
+        
         @media (max-width: 900px) {
             .container {
                 flex-direction: column;
@@ -116,6 +116,7 @@
             color: white;
             padding: 12px 20px;
             margin-top: 20px;
+            margin-right: 10px;
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
@@ -144,7 +145,7 @@
             cursor: pointer;
             font-size: 20px;
             transition: all 0.3s ease;
-            padding: 0;
+            padding: 5px;
             margin: 0;
         }
 
@@ -303,9 +304,10 @@
 
         function generateForm(questions) {
             const form = document.getElementById('questionForm');
+            form.innerHTML = ''; // Clear existing form
             const inputList = [];
             const respondingInputs = [];
-            for (const question of questions) {
+            for (const [index, question] of questions.entries()) {
                 const label = document.createElement('label');
                 label.textContent = question;
 
@@ -331,8 +333,18 @@
                     }
                 };
 
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.textContent = '❌';
+                removeButton.className = 'mic-button';
+                removeButton.onclick = () => {
+                    questions.splice(index, 1)
+                    generateForm(questions);
+                }
+
                 inputContainer.appendChild(input);
                 inputContainer.appendChild(micButton);
+                inputContainer.appendChild(removeButton);
 
                 form.appendChild(label);
                 form.appendChild(inputContainer);
@@ -341,11 +353,23 @@
             const submitButton = document.createElement('button');
             submitButton.type = 'button';
             submitButton.textContent = 'Submit Interview';
+            submitButton.style.marginRight = 10;
+            const addButton = document.createElement('button');
+            addButton.type = 'button';
+            addButton.textContent = 'Add Question';
+            addButton.onclick = () => {
+                const newQuestion = prompt('Enter the new question:');
+                if (newQuestion) {
+                    questions.push(newQuestion);
+                    generateForm(questions);
+                }
+            };
             submitButton.onclick = () => {
                 scroll(0, 0);
                 calculateScore(questions, inputList);
             };
             form.appendChild(submitButton);
+            form.appendChild(addButton);
         }
 
         function startSpeechRecognition(textarea, micButton) {
