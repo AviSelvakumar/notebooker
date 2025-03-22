@@ -52,7 +52,7 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         @media (max-width: 900px) {
             .container {
                 flex-direction: column;
@@ -287,6 +287,8 @@
                 </tr>
             </table>
             <div class="feedback" id="feedback">Submit your answers to receive feedback.</div>
+            <button onclick="try {saveData(); alert('Saved interview')} catch {alert('Error saving data')}">Save Interview</button>
+            <button onclick="try{loadData()} catch {alert('Error loading data')}">Load Interview</button>
         </div>
     </div>
 
@@ -296,16 +298,15 @@
             const questions = await response.json();
             return questions;
         }
-
+        var questions = [];
         document.addEventListener('DOMContentLoaded', async () => {
-            const questions = await fetchQuestions();
+            questions = await fetchQuestions();
             generateForm(questions);
         });
-
         function generateForm(questions) {
             const form = document.getElementById('questionForm');
-            form.innerHTML = ''; // Clear existing form
             const inputList = [];
+            form.innerHTML = ''; // Clear existing form
             const respondingInputs = [];
             for (const [index, question] of questions.entries()) {
                 const label = document.createElement('label');
@@ -422,8 +423,9 @@
 
             return interviewString;
         }
+        interview = {};
         async function calculateScore(questions, inputList) {
-            const interview = {};
+            interview = {};
             interviewStr = "";
             let hasAnswer = false;
 
@@ -472,6 +474,39 @@
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('feedback').textContent = 'Failed to submit interview.';
+            }
+        }
+        function saveData() {
+            const inputList = document.querySelectorAll("textarea");
+            interview = {};
+            questions.forEach((question, index) => {
+                interview[question] = inputList[index].value;
+            });
+            localStorage.setItem('interview', JSON.stringify(interview));
+        }
+        function loadData() {
+            const interviewData = localStorage.getItem('interview');
+            if (interviewData !== "{}" && interviewData !== null) {
+                interview = JSON.parse(interviewData);
+                questions = [];
+                const form = document.getElementById('questionForm');
+                form.innerHTML = ''; // Clear existing form
+
+                for (const question of Object.keys(interview)) {
+                    questions.push(question);
+                }
+
+                generateForm(questions); // Ensure form is generated
+
+                // Wait until form elements exist, then set values
+                const inputList = document.querySelectorAll("textarea");
+                questions.forEach((question, index) => {
+                    if (inputList[index]) { // Ensure the input exists before setting value
+                        inputList[index].value = interview[question];
+                    }
+                });
+            } else {
+                alert("No interview data found in local storage.");
             }
         }
     </script>
